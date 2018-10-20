@@ -1,0 +1,5 @@
+target 'CLIAPManagerDemo' do
+
+pod 'UICKeyChainStore'
+
+end

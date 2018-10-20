@@ -1,0 +1,16 @@
+PODS:
+  - UICKeyChainStore (2.1.1)
+
+DEPENDENCIES:
+  - UICKeyChainStore
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - UICKeyChainStore
+
+SPEC CHECKSUMS:
+  UICKeyChainStore: 239558492fa260531a0774cfc611ea83a6eaff3a
+
+PODFILE CHECKSUM: e6b61f2d7e79f436e509cc14a7ebcc09027179b0
+
+COCOAPODS: 1.5.3
