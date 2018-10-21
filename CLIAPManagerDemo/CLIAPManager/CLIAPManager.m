@@ -18,20 +18,15 @@ static CLIAPManager *_manger = nil;
 
 @property (nonatomic, strong) NSString *purchID;
 
-@property (nonatomic, copy) IAPCompletionHandle handle;
+@property (nonatomic, copy) IAPBuyProductCompletion buyProductCompletion;
+/**内购产品信息回掉*/
+@property (nonatomic, copy) IAPGetProductCompletion getProductCompletion;
+
 /**用户唯一标识符*/
 @property (nonatomic, copy) NSString *userId;
 
-
-
 /**支付凭证*/
 @property (nonatomic, strong) NSData *transactionReceiptData;
-
-
-
-
-//**转子*/
-//@property (nonatomic, strong) MBProgressHUD *hud;
 
 @end
 
@@ -51,9 +46,8 @@ static CLIAPManager *_manger = nil;
     return _manger;
 }
 //第3步: 保证init初始化时都相同
-+ (CLIAPManager *)sharedMangerWithUserId:(NSString *)userId {
++ (CLIAPManager *)sharedManager {
     _manger = [[self alloc] init];
-    _manger.userId = userId;
     return _manger;
 }
 
@@ -74,42 +68,99 @@ static CLIAPManager *_manger = nil;
 - (id)mutableCopyWithZone:(NSZone *)zone{
     return _manger;
 }
-
-
-#pragma mark - Public Method
-- (void)startPurchWithID:(NSString *)purchID completeHandle:(IAPCompletionHandle)handle {
-    if (purchID) {
-        if ([SKPaymentQueue canMakePayments]) {
-            // 开始购买服务，请求商品信息
-            self.purchID = purchID;
-            self.handle = handle;
-            NSSet *nsset = [NSSet setWithArray:@[purchID]];
-            SKProductsRequest *request = [[SKProductsRequest alloc] initWithProductIdentifiers:nsset];
-            request.delegate = self;
-            [request start];
-        }else {
-            [self handleActionWithType:kIAPPurchNotArrow data:nil];
+-(NSData *)transactionReceiptData {
+    return [self fetchTransactionReceiptDataInCurrentDevice];
+}
+- (void)registerManagerWithUserId:(NSString *)userId {
+    self.userId = userId;
+    [self checkUnverifyTransactionWithUserId:userId];
+}
+- (void)checkUnverifyTransactionWithUserId:(NSString *)userId {
+    //队列中还有
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    NSArray<SKPaymentTransaction *> *transactionsWaitingForVerifing = [[SKPaymentQueue defaultQueue] transactions];
+    for (SKPaymentTransaction *payment in transactionsWaitingForVerifing) {
+        BOOL success = [CLIAPKeychain savePaymentTransactionModel:[self createTransactionModelWithPaymentTransaction:payment] userid:userId];
+        if (success) {
+            [dictionary setObject:payment forKey:payment.transactionIdentifier];
+        }
+    }
+    NSArray<CLIAPTransactionModel *> * models = [CLIAPKeychain getAllPaymentTransactionModelsUsingComparator:^NSComparisonResult(CLIAPTransactionModel *obj1, CLIAPTransactionModel *obj2) {
+        return [obj1.transactionDate compare:obj2.transactionDate]; // 日期升序排序.
+    } userid:userId];
+    if (models.count) {
+        //钥匙串还有未完成验证的数据
+        for (CLIAPTransactionModel *model in models) {
+            NSString *receipts = [self.transactionReceiptData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
+            NSString *product_id = model.productIdentifier;
+            NSString *transaction_id = model.transactionIdentifier;
+            //上传成功，删除
+            SKPaymentTransaction *payment = [dictionary objectForKey:model.transactionIdentifier];
+            if (payment) {
+                //队列和钥匙串都有
+                [self finishATransation:[dictionary objectForKey:model.transactionIdentifier]];
+            }else {
+                //只有钥匙串有
+                [CLIAPKeychain deletePaymentTransactionModelWithTransactionIdentifier:model.transactionIdentifier userid:self.userId];
+            }
+            //验证成功
+//            if (self.buyProductCompletion) {
+//                NSError *error;
+//                self.buyProductCompletion(error);
+//            }
+            //验证失败
+//            if (self.buyProductCompletion) {
+//                self.buyProductCompletion([self createErrorWithString:@"验证失败"]);
+//            }
+            //上传凭证失败
+//            if (self.buyProductCompletion) {
+//                self.buyProductCompletion([self createErrorWithString:@"上传凭证失败"]);
+//            }
         }
     }
 }
+
+
+
+#pragma mark - Public Method
+- (void)getProductInfoWithProductIdentifiers:(NSSet<NSString *> *)productIdentifiers completion:(IAPGetProductCompletion)completion {
+    self.getProductCompletion = completion;
+    if (productIdentifiers) {
+        if ([SKPaymentQueue canMakePayments]) {
+            SKProductsRequest *request = [[SKProductsRequest alloc] initWithProductIdentifiers:productIdentifiers];
+            request.delegate = self;
+            [request start];
+        }else {
+            if (self.getProductCompletion) {
+                NSArray<SKProduct *> *array;
+                self.getProductCompletion(array, [self createErrorWithString:@"不支持内购"]);
+            }
+        }
+    }
+}
+- (void)buyProduct:(SKProduct *)product completion:(IAPBuyProductCompletion)completion {
+    self.buyProductCompletion = completion;
+    if (product) {
+        SKPayment *payment = [SKPayment paymentWithProduct:product];
+        [[SKPaymentQueue defaultQueue] addPayment:payment];
+    }
+}
+
 #pragma mark - SKProductsRequestDelegate
 //MARK:JmoVxia---请求内购商品信息反馈
 - (void)productsRequest:(SKProductsRequest *)request didReceiveResponse:(SKProductsResponse *)response {
-    NSArray *productArray = response.products;
+    NSArray<SKProduct *> *productArray = response.products;
     if([productArray count] <= 0) {
-        NSLog(@"--------------没有商品------------------");
-        return;
+        if (self.getProductCompletion) {
+            NSArray<SKProduct *> *array;
+            self.getProductCompletion(array, [self createErrorWithString:@"没有商品"]);
+        };
+    }else {
+        if (self.getProductCompletion) {
+            NSError *error;
+            self.getProductCompletion(productArray,error);
+        };
     }
-    SKProduct *product = nil;
-    for (SKProduct *pro in productArray) {
-        if ([pro.productIdentifier isEqualToString:self.purchID]) {
-            product = pro;
-            break;
-        }
-    }
-    NSLog(@"发送购买请求");
-    SKPayment *payment = [SKPayment paymentWithProduct:product];
-    [[SKPaymentQueue defaultQueue] addPayment:payment];
 }
 
 #pragma mark - SKPaymentTransactionObserver
@@ -148,33 +199,29 @@ static CLIAPManager *_manger = nil;
 - (void)transactionPurchased:(SKPaymentTransaction *)transaction {
     NSLog(@"交易成功...");
     //收到交易成功，先写入钥匙串，钥匙串内部自动判断是否存在
-    CLIAPTransactionModel *model = [self generateTransactionModelWithPaymentTransaction:transaction];
+    CLIAPTransactionModel *model = [self createTransactionModelWithPaymentTransaction:transaction];
     [CLIAPKeychain savePaymentTransactionModel:model userid:self.userId];
-    self.transactionReceiptData = [self fetchTransactionReceiptDataInCurrentDevice];
     if (self.transactionReceiptData.length) {
         NSLog(@"发起后台验证");
-        
-        //验证成功，删除
-        [self finishATransation:transaction];
-        
-        
-        //验证失败
-        //1.上传到后台失败，找几乎重新传
-        
-        //2.后台验证失败
-        
-        
+        [self checkUnverifyTransactionWithUserId:self.userId];
     }else {
         NSLog(@"支付凭证不存在");
+        if (self.buyProductCompletion) {
+            self.buyProductCompletion([self createErrorWithString:@"支付凭证不存在"]);
+        }
     }
 }
 // 交易失败.
 - (void)transactionFailed:(SKPaymentTransaction *)transaction {
     if(transaction.error.code != SKErrorPaymentCancelled) {
-        NSLog(@"购买失败");
+        if (self.buyProductCompletion) {
+            self.buyProductCompletion([self createErrorWithString:@"购买失败"]);
+        }
     }
     else {
-        NSLog(@"用户取消交易");
+        if (self.buyProductCompletion) {
+            self.buyProductCompletion([self createErrorWithString:@"取消购买"]);
+        }
     }
     [self finishATransation:transaction];
 }
@@ -213,39 +260,7 @@ static CLIAPManager *_manger = nil;
     NSLog(@"------------反馈信息结束-----------------");
 }
 
-
-#pragma mark - Private Method
-- (void)handleActionWithType:(IAPPurchType)type data:(NSData *)data{
-#if DEBUG
-    switch (type) {
-        case kIAPPurchSuccess:
-            NSLog(@"购买成功");
-            break;
-        case kIAPPurchFailed:
-            NSLog(@"购买失败");
-            break;
-        case kIAPPurchCancle:
-            NSLog(@"用户取消购买");
-            break;
-        case KIAPPurchVerFailed:
-            NSLog(@"订单校验失败");
-            break;
-        case KIAPPurchVerSuccess:
-            NSLog(@"订单校验成功");
-            break;
-        case kIAPPurchNotArrow:
-            NSLog(@"不允许程序内付费");
-            break;
-        default:
-            break;
-    }
-#endif
-    if(self.handle){
-        self.handle(type,data);
-    }
-}
-
-- (CLIAPTransactionModel *)generateTransactionModelWithPaymentTransaction:(SKPaymentTransaction *)transaction {
+- (CLIAPTransactionModel *)createTransactionModelWithPaymentTransaction:(SKPaymentTransaction *)transaction {
     return [[CLIAPTransactionModel alloc] initWithProductIdentifier:transaction.payment.productIdentifier transactionIdentifier:transaction.transactionIdentifier transactionDate:transaction.transactionDate];
 }
 - (void)finishATransation:(SKPaymentTransaction *)transaction {
@@ -261,5 +276,11 @@ static CLIAPManager *_manger = nil;
     [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
     [CLIAPKeychain deletePaymentTransactionModelWithTransactionIdentifier:transaction.transactionIdentifier userid:self.userId];
 }
+
+- (NSError *)createErrorWithString:(NSString *)string {
+    NSError *error = [NSError errorWithDomain:@"com.CLIAPManager.error" code:0 userInfo:@{NSLocalizedDescriptionKey : string}];
+    return error;
+}
+
 
 @end

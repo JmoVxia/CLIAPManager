@@ -8,18 +8,13 @@
 
 #import <Foundation/Foundation.h>
 
+@class SKProduct;
+
 NS_ASSUME_NONNULL_BEGIN
 
-typedef enum {
-    kIAPPurchSuccess = 0,       // 购买成功
-    kIAPPurchFailed = 1,        // 购买失败
-    kIAPPurchCancle = 2,        // 取消购买
-    KIAPPurchVerFailed = 3,     // 订单校验失败
-    KIAPPurchVerSuccess = 4,    // 订单校验成功
-    kIAPPurchNotArrow = 5,      // 不允许内购
-}IAPPurchType;
+typedef void (^IAPBuyProductCompletion)(NSError *error);
 
-typedef void (^IAPCompletionHandle)(IAPPurchType type,NSData *data);
+typedef void (^IAPGetProductCompletion)(NSArray<SKProduct *> *array, NSError *error);
 
 
 @interface CLIAPManager : NSObject
@@ -28,12 +23,29 @@ typedef void (^IAPCompletionHandle)(IAPPurchType type,NSData *data);
 /**
  单例创建管理者
  
- @return 缓存管理者
+ @return 管理者
  */
-+ (CLIAPManager *)sharedMangerWithUserId:(NSString *)userId;
++ (CLIAPManager *)sharedManager;
 
-- (void)startPurchWithID:(NSString *)purchID completeHandle:(IAPCompletionHandle)handle;
 
+/**
+ 注册管理者
+
+ @param userId 用户id
+ */
+- (void)registerManagerWithUserId:(NSString *)userId;
+
+
+/**
+ * 获取产品信息.
+ */
+- (void)getProductInfoWithProductIdentifiers:(NSSet<NSString *> *)productIdentifiers completion:(IAPGetProductCompletion)completion;
+
+
+/**
+ * 购买某个产品.
+ */
+- (void)buyProduct:(SKProduct *)product completion:(IAPBuyProductCompletion)completion;
 
 @end
 

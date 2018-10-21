@@ -136,7 +136,7 @@
 }
 
 
-+ (void)savePaymentTransactionModel:(CLIAPTransactionModel *)model userid:(NSString *)userid {
++ (BOOL)savePaymentTransactionModel:(CLIAPTransactionModel *)model userid:(NSString *)userid {
     NSMutableArray<CLIAPTransactionModel *> *array = [NSMutableArray arrayWithArray:[self readArray:userid]];
     if (!array) {
         array = [NSMutableArray array];
@@ -149,10 +149,11 @@
         }
     }];
     if (isHave) {
-        return;
+        return NO;
     }else {
         [array addObject:model];
         [self saveArray:array service:userid];
+        return YES;
     }
 }
 

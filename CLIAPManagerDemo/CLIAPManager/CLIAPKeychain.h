@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  * 存储交易模型
  */
-+ (void)savePaymentTransactionModel:(CLIAPTransactionModel *)model userid:(NSString *)userid;
++ (BOOL)savePaymentTransactionModel:(CLIAPTransactionModel *)model userid:(NSString *)userid;
 
 /**
  * 获取所有交易模型, 并排序
