@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		0CA285C3217B13C2004EB0C7 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 0CA285C2217B13C2004EB0C7 /* Default-568h@2x.png */; };
+		0CA285C9217B21B3004EB0C7 /* CLIAPTransactionModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 0CA285C8217B21B3004EB0C7 /* CLIAPTransactionModel.m */; };
+		0CCBEF0A217B2EE70021CAE1 /* CLIAPKeychain.m in Sources */ = {isa = PBXBuildFile; fileRef = 0CCBEF09217B2EE70021CAE1 /* CLIAPKeychain.m */; };
 		0CF4F64D217B128E0034F639 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0CF4F64C217B128E0034F639 /* AppDelegate.m */; };
 		0CF4F650217B128E0034F639 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0CF4F64F217B128E0034F639 /* ViewController.m */; };
 		0CF4F653217B128E0034F639 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0CF4F651217B128E0034F639 /* Main.storyboard */; };
@@ -20,6 +22,10 @@
 
 /* Begin PBXFileReference section */
 		0CA285C2217B13C2004EB0C7 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		0CA285C7217B21B3004EB0C7 /* CLIAPTransactionModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CLIAPTransactionModel.h; sourceTree = "<group>"; };
+		0CA285C8217B21B3004EB0C7 /* CLIAPTransactionModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CLIAPTransactionModel.m; sourceTree = "<group>"; };
+		0CCBEF08217B2EE70021CAE1 /* CLIAPKeychain.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CLIAPKeychain.h; sourceTree = "<group>"; };
+		0CCBEF09217B2EE70021CAE1 /* CLIAPKeychain.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CLIAPKeychain.m; sourceTree = "<group>"; };
 		0CF4F648217B128E0034F639 /* CLIAPManagerDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CLIAPManagerDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0CF4F64B217B128E0034F639 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		0CF4F64C217B128E0034F639 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -98,6 +104,10 @@
 			children = (
 				0CF4F67F217B12C10034F639 /* CLIAPManager.h */,
 				0CF4F680217B12C10034F639 /* CLIAPManager.m */,
+				0CA285C7217B21B3004EB0C7 /* CLIAPTransactionModel.h */,
+				0CA285C8217B21B3004EB0C7 /* CLIAPTransactionModel.m */,
+				0CCBEF08217B2EE70021CAE1 /* CLIAPKeychain.h */,
+				0CCBEF09217B2EE70021CAE1 /* CLIAPKeychain.m */,
 			);
 			path = CLIAPManager;
 			sourceTree = "<group>";
@@ -214,7 +224,9 @@
 			files = (
 				0CF4F650217B128E0034F639 /* ViewController.m in Sources */,
 				0CF4F681217B12C10034F639 /* CLIAPManager.m in Sources */,
+				0CCBEF0A217B2EE70021CAE1 /* CLIAPKeychain.m in Sources */,
 				0CF4F65B217B128E0034F639 /* main.m in Sources */,
+				0CA285C9217B21B3004EB0C7 /* CLIAPTransactionModel.m in Sources */,
 				0CF4F64D217B128E0034F639 /* AppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -361,6 +373,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = KZ83WEMA2D;
 				INFOPLIST_FILE = CLIAPManagerDemo/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -379,6 +392,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = KZ83WEMA2D;
 				INFOPLIST_FILE = CLIAPManagerDemo/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

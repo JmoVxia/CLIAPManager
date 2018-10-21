@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "AC328A322549FBC704B7F329F8D193C9"
+               BlueprintIdentifier = "62AD744C1654044E6433F1646AE409F6"
                BuildableName = "libUICKeyChainStore.a"
                BlueprintName = "UICKeyChainStore"
                ReferencedContainer = "container:Pods.xcodeproj">
@@ -45,7 +45,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "AC328A322549FBC704B7F329F8D193C9"
+            BlueprintIdentifier = "62AD744C1654044E6433F1646AE409F6"
             BuildableName = "libUICKeyChainStore.a"
             BlueprintName = "UICKeyChainStore"
             ReferencedContainer = "container:Pods.xcodeproj">
