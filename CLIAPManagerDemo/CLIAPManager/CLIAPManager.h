@@ -36,6 +36,19 @@ typedef void (^IAPGetProductCompletion)(NSArray<SKProduct *> *array, NSError *er
 - (void)registerManagerWithUserId:(NSString *)userId;
 
 
+
+/**
+ 注销管理者
+ */
+- (void)logoutPaymentManager;
+
+/**
+ * 是否所有的待验证任务都完成了.
+ *
+ * @warning error ⚠️ 退出前的警告信息(比如用户有尚未得到验证的订单).
+ */
+- (BOOL)allVerifyWasSuccess;
+
 /**
  * 获取产品信息.
  */
