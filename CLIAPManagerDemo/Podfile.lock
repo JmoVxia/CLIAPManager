@@ -14,21 +14,17 @@ PODS:
   - AFNetworking/Serialization (3.2.1)
   - AFNetworking/UIKit (3.2.1):
     - AFNetworking/NSURLSession
-  - UICKeyChainStore (2.1.1)
 
 DEPENDENCIES:
   - AFNetworking
-  - UICKeyChainStore
 
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
     - AFNetworking
-    - UICKeyChainStore
 
 SPEC CHECKSUMS:
   AFNetworking: b6f891fdfaed196b46c7a83cf209e09697b94057
-  UICKeyChainStore: 239558492fa260531a0774cfc611ea83a6eaff3a
 
-PODFILE CHECKSUM: 75da49ddc608a8a80f3a6b5c092aa02c6ffe7d7b
+PODFILE CHECKSUM: 71ab5e58278ada81bf3e013f59192fe86f8f769e
 
 COCOAPODS: 1.5.3

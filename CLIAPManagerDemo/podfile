@@ -1,6 +1,5 @@
 target 'CLIAPManagerDemo' do
 
-pod 'UICKeyChainStore'
 pod 'AFNetworking' # 网络监控.
 
 end

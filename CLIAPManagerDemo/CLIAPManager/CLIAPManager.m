@@ -10,6 +10,7 @@
 #import <StoreKit/StoreKit.h>
 #import "CLIAPTransactionModel.h"
 #import "CLIAPKeychain.h"
+#import <AFNetworkReachabilityManager.h>
 
 //第1步: 存储唯一实例
 static CLIAPManager *_manger = nil;
@@ -29,7 +30,10 @@ static CLIAPManager *_manger = nil;
 
 /**当前内购商品*/
 @property (nonatomic, strong) SKPayment *lastPayment;
-
+/**
+ * 网络监听者.
+ */
+@property(nonatomic, strong, nonnull) AFNetworkReachabilityManager *networkReachabilityManager;
 
 @end
 
@@ -78,7 +82,7 @@ static CLIAPManager *_manger = nil;
         self.userId = userId;
         //购买监听写在程序入口,程序挂起时移除监听,这样如果有未完成的订单将会自动执行并回调 paymentQueue:updatedTransactions:方法
         [[SKPaymentQueue defaultQueue] addTransactionObserver:self];
-        [self checkUnverifyTransactionWithUserId:userId];
+        [self checkUnverifyTransaction];
     }else {
         NSLog(@"userId 不能为空");
     }
@@ -93,48 +97,51 @@ static CLIAPManager *_manger = nil;
 }
 //MARK:JmoVxia---所有订单都完成验证
 - (BOOL)allVerifyWasSuccess {
-    return [self checkUnverifyTransactionWithUserId:self.userId];
+    return [self checkUnverifyTransaction];
 }
 //MARK:JmoVxia---检查未验证订单
-- (BOOL)checkUnverifyTransactionWithUserId:(NSString *)userId {
-    //队列中还有
-    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
-    NSArray<SKPaymentTransaction *> *transactionsWaitingForVerifing = [[SKPaymentQueue defaultQueue] transactions];
-    for (SKPaymentTransaction *transaction in transactionsWaitingForVerifing) {
-        BOOL success = [CLIAPKeychain savePaymentTransactionModel:[self createTransactionModelWithPaymentTransaction:transaction] userid:userId];
-        if (success) {
-            [dictionary setObject:transaction forKey:transaction.transactionIdentifier];
-        }
-    }
-    NSArray<CLIAPTransactionModel *> * models = [CLIAPKeychain getAllPaymentTransactionModelsUsingComparator:^NSComparisonResult(CLIAPTransactionModel *obj1, CLIAPTransactionModel *obj2) {
-        return [obj1.transactionDate compare:obj2.transactionDate]; // 日期升序排序.
-    } userid:userId];
-    if (models.count) {
-        //钥匙串还有未完成验证的数据
-        for (CLIAPTransactionModel *model in models) {
-//            NSString *receipts = [self.transactionReceiptData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
-//            NSString *product_id = model.productIdentifier;
-//            NSString *transaction_id = model.transactionIdentifier;
-            //上传成功，删除
-            SKPaymentTransaction *transaction = [dictionary objectForKey:model.transactionIdentifier];
-            if (transaction) {
-                //队列和钥匙串都有
-                //验证成功
-                [self buyProductCompletionWithProduct:transaction.payment string:nil];
-                //验证失败
-                [self buyProductCompletionWithProduct:transaction.payment string:@"验证失败"];
-                //上传凭证失败
-                [self buyProductCompletionWithProduct:transaction.payment string:@"上传凭证失败"];
-                [self finishATransation:[dictionary objectForKey:model.transactionIdentifier]];
-            }else {
-                //只有钥匙串有
-                [CLIAPKeychain deletePaymentTransactionModelWithTransactionIdentifier:model.transactionIdentifier userid:self.userId];
+- (BOOL)checkUnverifyTransaction {
+    if (self.userId) {
+        //队列中还有
+        NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+        NSArray<SKPaymentTransaction *> *transactionsWaitingForVerifing = [[SKPaymentQueue defaultQueue] transactions];
+        for (SKPaymentTransaction *transaction in transactionsWaitingForVerifing) {
+            BOOL success = [CLIAPKeychain savePaymentTransactionModel:[self createTransactionModelWithPaymentTransaction:transaction] userid:self.userId];
+            if (success) {
+                [dictionary setObject:transaction forKey:transaction.transactionIdentifier];
             }
         }
-        return NO;
-    }else {
-        return YES;
+        NSArray<CLIAPTransactionModel *> * models = [CLIAPKeychain getAllPaymentTransactionModelsUsingComparator:^NSComparisonResult(CLIAPTransactionModel *obj1, CLIAPTransactionModel *obj2) {
+            return [obj1.transactionDate compare:obj2.transactionDate]; // 日期升序排序.
+        } userid:self.userId];
+        if (models.count > 0) {
+            //钥匙串还有未完成验证的数据
+            for (CLIAPTransactionModel *model in models) {
+                //            NSString *receipts = [self.transactionReceiptData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
+                //            NSString *product_id = model.productIdentifier;
+                //            NSString *transaction_id = model.transactionIdentifier;
+                //上传成功，删除
+                SKPaymentTransaction *transaction = [dictionary objectForKey:model.transactionIdentifier];
+                if (transaction) {
+                    //队列和钥匙串都有
+                    //验证成功
+                    [self buyProductCompletionWithProduct:transaction.payment string:nil];
+                    //验证失败
+                    [self buyProductCompletionWithProduct:transaction.payment string:@"验证失败"];
+                    //上传凭证失败
+                    [self buyProductCompletionWithProduct:transaction.payment string:@"上传凭证失败"];
+                    [self finishATransation:[dictionary objectForKey:model.transactionIdentifier]];
+                }else {
+                    //只有钥匙串有
+                    [CLIAPKeychain deletePaymentTransactionModelWithTransactionIdentifier:model.transactionIdentifier userid:self.userId];
+                }
+            }
+            return NO;
+        }else {
+            return YES;
+        }
     }
+    return YES;
 }
 //MARK:JmoVxia---获取内购商品信息
 - (void)getProductInfoWithProductIdentifiers:(NSSet<NSString *> *)productIdentifiers completion:(IAPGetProductCompletion)completion {
@@ -215,12 +222,14 @@ static CLIAPManager *_manger = nil;
 - (void)transactionPurchased:(SKPaymentTransaction *)transaction {
     NSLog(@"交易成功...");
     //收到交易成功，先写入钥匙串，钥匙串内部自动判断是否存在
-    CLIAPTransactionModel *model = [self createTransactionModelWithPaymentTransaction:transaction];
-    [CLIAPKeychain savePaymentTransactionModel:model userid:self.userId];
-    if (self.transactionReceiptData.length) {
-        [self checkUnverifyTransactionWithUserId:self.userId];
-    }else {
-        [self buyProductCompletionWithProduct:transaction.payment string:@"支付凭证不存在"];
+    if (self.userId) {
+        CLIAPTransactionModel *model = [self createTransactionModelWithPaymentTransaction:transaction];
+        [CLIAPKeychain savePaymentTransactionModel:model userid:self.userId];
+        if (self.transactionReceiptData.length) {
+            [self checkUnverifyTransaction];
+        }else {
+            [self buyProductCompletionWithProduct:transaction.payment string:@"支付凭证不存在"];
+        }
     }
 }
 // 交易失败.
@@ -271,8 +280,7 @@ static CLIAPManager *_manger = nil;
 }
 //MARK:JmoVxia---结束订单
 - (void)finishATransation:(SKPaymentTransaction *)transaction {
-    NSParameterAssert(transaction);
-    if (!transaction) {
+    if (!transaction || !self.userId) {
         return;
     }
     // 不能完成一个正在交易的订单.
@@ -311,5 +319,34 @@ static CLIAPManager *_manger = nil;
         }
     }
 }
-
+//MARK:JmoVxia---网络监控
+- (void)networkReachabilityByAFN {
+    __weak __typeof(self) weakSelf = self;
+    self.networkReachabilityManager = [AFNetworkReachabilityManager manager];
+    [self.networkReachabilityManager setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
+        __typeof(&*weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
+        switch (status) {
+            case AFNetworkReachabilityStatusUnknown:
+                NSLog(@"未知");
+                break;
+                
+            case AFNetworkReachabilityStatusNotReachable:
+                NSLog(@"没有网络");
+                break;
+                
+            case AFNetworkReachabilityStatusReachableViaWWAN:
+                [strongSelf checkUnverifyTransaction];
+                break;
+                
+            case AFNetworkReachabilityStatusReachableViaWiFi:
+                [strongSelf checkUnverifyTransaction];
+                break;
+                
+            default:
+                break;
+        }
+    }];
+    [self.networkReachabilityManager startMonitoring];
+}
 @end
