@@ -101,7 +101,19 @@ static CLIAPManager *_manger = nil;
         NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
         NSArray<SKPaymentTransaction *> *transactionsWaitingForVerifing = [[SKPaymentQueue defaultQueue] transactions];
         for (SKPaymentTransaction *transaction in transactionsWaitingForVerifing) {
-            BOOL success = [CLIAPKeychain savePaymentTransactionModel:[self createTransactionModelWithPaymentTransaction:transaction] userid:self.userId];
+            BOOL success = NO;
+            if (transaction.transactionState == SKPaymentTransactionStateFailed) {
+                //失败的交易
+                [self transactionFailed:transaction];
+            }else if (transaction.transactionState == SKPaymentTransactionStateRestored) {
+                //已经购买
+                success = [CLIAPKeychain savePaymentTransactionModel:[self createTransactionModelWithPaymentTransaction:transaction] userid:self.userId];
+                //删除队列中订单
+                [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
+            }else if (transaction.transactionState == SKPaymentTransactionStatePurchased) {
+                //交易成功的订单
+                success = [CLIAPKeychain savePaymentTransactionModel:[self createTransactionModelWithPaymentTransaction:transaction] userid:self.userId];
+            }
             if (success) {
                 [dictionary setObject:transaction forKey:transaction.transactionIdentifier];
             }
@@ -138,7 +150,7 @@ static CLIAPManager *_manger = nil;
             return YES;
         }
     }
-    return YES;
+    return NO;
 }
 //MARK:JmoVxia---获取内购商品信息
 - (void)getProductInfoWithProductIdentifiers:(NSSet<NSString *> *)productIdentifiers completion:(IAPGetProductCompletion)completion {
@@ -158,6 +170,8 @@ static CLIAPManager *_manger = nil;
 }
 //MARK:JmoVxia---购买内购商品
 - (void)buyProduct:(SKProduct *)product completion:(IAPBuyProductCompletion)completion {
+    //够买前检查是否有未验证订单
+    [self checkUnverifyTransaction];
     self.buyProductCompletion = completion;
     if (product) {
         SKPayment *payment = [SKPayment paymentWithProduct:product];
@@ -243,6 +257,9 @@ static CLIAPManager *_manger = nil;
 // 已经购买过该商品.
 - (void)transactionRestored:(SKPaymentTransaction *)transaction {
     NSLog(@"已经购买过该商品...");
+    [CLIAPKeychain savePaymentTransactionModel:[self createTransactionModelWithPaymentTransaction:transaction] userid:self.userId];
+    //删除队列中订单
+    [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
 }
 
 // 交易延期.
