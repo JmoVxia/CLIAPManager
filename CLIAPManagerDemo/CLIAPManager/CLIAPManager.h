@@ -28,6 +28,7 @@ typedef void (^IAPGetProductCompletion)(NSArray<SKProduct *> *array, NSError *er
 + (CLIAPManager *)sharedManager;
 
 
+
 /**
  注册管理者
 
@@ -42,21 +43,30 @@ typedef void (^IAPGetProductCompletion)(NSArray<SKProduct *> *array, NSError *er
  */
 - (void)logoutPaymentManager;
 
+
 /**
- * 是否所有的待验证任务都完成了.
- *
- * @warning error ⚠️ 退出前的警告信息(比如用户有尚未得到验证的订单).
+ 所有订单验证都成功上传了
+
+ @return 是否成功
  */
 - (BOOL)allVerifyWasSuccess;
 
+
 /**
- * 获取产品信息.
+ 获取内购产品信息
+
+ @param productIdentifiers 产品标识符集合
+ @param completion 内购产品回掉
  */
 - (void)getProductInfoWithProductIdentifiers:(NSSet<NSString *> *)productIdentifiers completion:(IAPGetProductCompletion)completion;
 
 
+
 /**
- * 购买某个产品.
+ 购买内购商品
+
+ @param product 商品
+ @param completion 结果回掉
  */
 - (void)buyProduct:(SKProduct *)product completion:(IAPBuyProductCompletion)completion;
 

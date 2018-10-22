@@ -10,7 +10,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface CLIAPTransactionModel : NSObject
+@interface CLIAPTransactionModel : NSObject <NSCoding>
 
 
 /**

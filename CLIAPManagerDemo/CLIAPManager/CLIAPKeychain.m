@@ -31,7 +31,12 @@
 + (void)saveDate:(id)data service:(NSString *)service {
     NSMutableDictionary *keychainQuery = [self getKeychainQuery:service];
     SecItemDelete((CFDictionaryRef)keychainQuery);
-    NSData *aesData =  [self aes256EncryptWithKey:@"Com.CLIAP.Keychain" dataSource:[NSJSONSerialization dataWithJSONObject:data options:NSJSONWritingPrettyPrinted error:nil]];
+    NSData *aesData;
+    if ([NSJSONSerialization isValidJSONObject:data]) {
+        aesData =  [self aes256EncryptWithKey:@"Com.CLIAP.Keychain" dataSource:[NSJSONSerialization dataWithJSONObject:data options:NSJSONWritingPrettyPrinted error:nil]];
+    }else {
+        aesData =  [self aes256EncryptWithKey:@"Com.CLIAP.Keychain" dataSource:[NSKeyedArchiver archivedDataWithRootObject:data]];
+    }
     [keychainQuery setObject:[NSKeyedArchiver archivedDataWithRootObject:aesData] forKey:(id)kSecValueData];
     SecItemAdd((CFDictionaryRef)keychainQuery, NULL);
 }
@@ -53,7 +58,11 @@
     CFDataRef keyData = NULL;
     if (SecItemCopyMatching((CFDictionaryRef)keychainQuery, (CFTypeRef *)&keyData) == noErr) {
         @try {
+            
             ret = [NSJSONSerialization JSONObjectWithData:[self aes256DecryptWithKey:@"Com.CLIAP.Keychain" dataSource:[NSKeyedUnarchiver unarchiveObjectWithData:(__bridge NSData *)keyData]] options:NSJSONReadingMutableLeaves error:nil];
+            if (!ret) {
+               ret = [NSKeyedUnarchiver unarchiveObjectWithData:[self aes256DecryptWithKey:@"Com.CLIAP.Keychain" dataSource:[NSKeyedUnarchiver unarchiveObjectWithData:(__bridge NSData *)keyData]]];
+            }
         } @catch (NSException *e) {
             NSLog(@"Unarchive of %@ failed: %@", service, e);
         } @finally {

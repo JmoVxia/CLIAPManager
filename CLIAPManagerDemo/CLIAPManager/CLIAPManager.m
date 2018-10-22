@@ -17,22 +17,17 @@ static CLIAPManager *_manger = nil;
 
 @interface CLIAPManager () <SKPaymentTransactionObserver,SKProductsRequestDelegate,SKRequestDelegate>
 
-
+/**h购买内购产品信息回掉*/
 @property (nonatomic, copy) IAPBuyProductCompletion buyProductCompletion;
-/**内购产品信息回掉*/
+/**获取内购产品信息回掉*/
 @property (nonatomic, copy) IAPGetProductCompletion getProductCompletion;
-
-/**用户唯一标识符*/
+/**用户id*/
 @property (nonatomic, copy) NSString *userId;
-
 /**支付凭证*/
 @property (nonatomic, strong) NSData *transactionReceiptData;
-
 /**当前内购商品*/
 @property (nonatomic, strong) SKPayment *lastPayment;
-/**
- * 网络监听者.
- */
+/**网络监听者*/
 @property(nonatomic, strong, nonnull) AFNetworkReachabilityManager *networkReachabilityManager;
 
 @end
@@ -124,17 +119,19 @@ static CLIAPManager *_manger = nil;
                 SKPaymentTransaction *transaction = [dictionary objectForKey:model.transactionIdentifier];
                 if (transaction) {
                     //队列和钥匙串都有
-                    //验证成功
-                    [self buyProductCompletionWithProduct:transaction.payment string:nil];
-                    //验证失败
-                    [self buyProductCompletionWithProduct:transaction.payment string:@"验证失败"];
-                    //上传凭证失败
-                    [self buyProductCompletionWithProduct:transaction.payment string:@"上传凭证失败"];
                     [self finishATransation:[dictionary objectForKey:model.transactionIdentifier]];
                 }else {
                     //只有钥匙串有
                     [CLIAPKeychain deletePaymentTransactionModelWithTransactionIdentifier:model.transactionIdentifier userid:self.userId];
                 }
+                //验证成功
+//                [self buyProductCompletionWithProduct:transaction.payment string:nil];
+                //验证失败
+//                [self buyProductCompletionWithProduct:transaction.payment string:@"验证失败"];
+                
+                
+                //上传凭证失败
+//                [self buyProductCompletionWithProduct:transaction.payment string:@"上传凭证失败"];
             }
             return NO;
         }else {
