@@ -187,7 +187,7 @@ static CLIAPManager *_manger = nil;
 //MARK:JmoVxia---内购订单回掉
 - (void)paymentQueue:(SKPaymentQueue *)queue updatedTransactions:(NSArray<SKPaymentTransaction *> *)transactions {
     // 这里的事务包含之前没有完成的.
-    for (SKPaymentTransaction *transaction in transactions) {
+    for (SKPaymentTransaction *transaction in queue.transactions) {
         switch (transaction.transactionState) {
             case SKPaymentTransactionStatePurchasing:
                 [self transactionPurchasing:transaction];
