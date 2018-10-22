@@ -29,6 +29,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, copy, readonly) NSString *productIdentifier;
 
 
+/**用户id*/
+@property (nonatomic, copy) NSString *userId;
+
+
 /**
  * 初始化方法(没有收据的).
  *
@@ -40,7 +44,7 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (instancetype)initWithProductIdentifier:(NSString *)productIdentifier
                     transactionIdentifier:(NSString *)transactionIdentifier
-                          transactionDate:(NSDate *)transactionDate;
+                          transactionDate:(NSDate *)transactionDate userId:(NSString *)userId;
 
 @end
 

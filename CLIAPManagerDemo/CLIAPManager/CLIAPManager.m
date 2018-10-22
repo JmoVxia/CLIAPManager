@@ -124,9 +124,10 @@ static CLIAPManager *_manger = nil;
         if (models.count > 0) {
             //钥匙串还有未完成验证的数据
             for (CLIAPTransactionModel *model in models) {
-                //            NSString *receipts = [self.transactionReceiptData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
-                //            NSString *product_id = model.productIdentifier;
-                //            NSString *transaction_id = model.transactionIdentifier;
+//                NSString *receipts = [self.transactionReceiptData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
+//                NSString *product_id = model.productIdentifier;
+//                NSString *transaction_id = model.transactionIdentifier;
+//                NSString *userId = model.userId;
                 //上传成功，删除
                 SKPaymentTransaction *transaction = [dictionary objectForKey:model.transactionIdentifier];
                 if (transaction) {
@@ -290,7 +291,7 @@ static CLIAPManager *_manger = nil;
 }
 //MARK:JmoVxia---创建订单模型
 - (CLIAPTransactionModel *)createTransactionModelWithPaymentTransaction:(SKPaymentTransaction *)transaction {
-    return [[CLIAPTransactionModel alloc] initWithProductIdentifier:transaction.payment.productIdentifier transactionIdentifier:transaction.transactionIdentifier transactionDate:transaction.transactionDate];
+    return [[CLIAPTransactionModel alloc] initWithProductIdentifier:transaction.payment.productIdentifier transactionIdentifier:transaction.transactionIdentifier transactionDate:transaction.transactionDate userId:self.userId];
 }
 //MARK:JmoVxia---结束订单
 - (void)finishATransation:(SKPaymentTransaction *)transaction {

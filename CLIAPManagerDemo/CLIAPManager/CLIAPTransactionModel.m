@@ -12,26 +12,16 @@
 
 - (instancetype)initWithProductIdentifier:(NSString *)productIdentifier
                     transactionIdentifier:(NSString *)transactionIdentifier
-                          transactionDate:(NSDate *)transactionDate {
-    NSParameterAssert(productIdentifier);
-    NSParameterAssert(transactionIdentifier);
-    NSParameterAssert(transactionDate);
-    NSString *errorString = nil;
-    if (!productIdentifier.length || !transactionIdentifier.length || !transactionDate) {
-        errorString = [NSString stringWithFormat:@"致命错误: 初始化贝聊钱包商品交易模型时, productIdentifier: %@, transactionIdentifier: %@, transactionDate: %@ 中有数据为空", productIdentifier, transactionIdentifier, [NSString stringWithFormat:@"%f", transactionDate.timeIntervalSince1970]];
-    }
-    
-    if (errorString) {
-        // 报告错误.
-        NSLog(@"%@",errorString);
+                          transactionDate:(NSDate *)transactionDate userId:(NSString *)userId{
+    if (!productIdentifier.length || !transactionIdentifier.length || !transactionDate || userId) {
         return nil;
     }
-    
     self = [super init];
     if (self) {
         _productIdentifier = productIdentifier;
         _transactionIdentifier = transactionIdentifier;
         _transactionDate = transactionDate;
+        _userId = userId;
     }
     return self;
 }
@@ -42,6 +32,7 @@
         _productIdentifier = [aDecoder decodeObjectForKey:@"productIdentifier"];
         _transactionIdentifier = [aDecoder decodeObjectForKey:@"transactionIdentifier"];
         _transactionDate = [aDecoder decodeObjectForKey:@"transactionDate"];
+        _userId = [aDecoder decodeObjectForKey:@"userId"];
     }
     return self;
 }
@@ -50,6 +41,7 @@
     [aCoder encodeObject:self.productIdentifier forKey:@"productIdentifier"];
     [aCoder encodeObject:self.transactionIdentifier forKey:@"transactionIdentifier"];
     [aCoder encodeObject:self.transactionDate forKey:@"transactionDate"];
+    [aCoder encodeObject:self.userId forKey:@"userId"];
 }
 
 -(BOOL)isEqual:(id)object {
@@ -68,7 +60,9 @@
 - (BOOL)isEqualToModel:(CLIAPTransactionModel *)object {
     BOOL isTransactionIdentifierMatch = [self.transactionIdentifier isEqualToString:object.transactionIdentifier];
     BOOL isProductIdentifierMatch = [self.productIdentifier isEqualToString:object.productIdentifier];
-    return isTransactionIdentifierMatch && isProductIdentifierMatch;
+    BOOL isTransactionDate = [self.transactionDate isEqualToDate:object.transactionDate];
+    BOOL isUserId = [self.userId isEqualToString:object.userId];
+    return isTransactionIdentifierMatch && isProductIdentifierMatch && isTransactionDate && isUserId;
 }
 
 @end
