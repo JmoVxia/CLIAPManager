@@ -44,13 +44,6 @@ typedef void (^IAPGetProductCompletion)(NSArray<SKProduct *> *array, NSError *er
 - (void)logoutPaymentManager;
 
 
-/**
- 所有订单验证都成功上传了
-
- @return 是否成功
- */
-- (BOOL)allVerifyWasSuccess;
-
 
 /**
  获取内购产品信息

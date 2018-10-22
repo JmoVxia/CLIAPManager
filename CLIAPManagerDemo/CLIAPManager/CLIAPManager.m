@@ -90,10 +90,7 @@ static CLIAPManager *_manger = nil;
     self.lastPayment = nil;
     [[SKPaymentQueue defaultQueue] removeTransactionObserver:self];
 }
-//MARK:JmoVxia---所有订单都完成验证
-- (BOOL)allVerifyWasSuccess {
-    return [self checkUnverifyTransaction];
-}
+
 //MARK:JmoVxia---检查未验证订单
 - (BOOL)checkUnverifyTransaction {
     if (self.userId) {
