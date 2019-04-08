@@ -58,7 +58,6 @@
     CFDataRef keyData = NULL;
     if (SecItemCopyMatching((CFDictionaryRef)keychainQuery, (CFTypeRef *)&keyData) == noErr) {
         @try {
-            
             ret = [NSJSONSerialization JSONObjectWithData:[self aes256DecryptWithKey:@"Com.CLIAP.Keychain" dataSource:[NSKeyedUnarchiver unarchiveObjectWithData:(__bridge NSData *)keyData]] options:NSJSONReadingMutableLeaves error:nil];
             if (!ret) {
                ret = [NSKeyedUnarchiver unarchiveObjectWithData:[self aes256DecryptWithKey:@"Com.CLIAP.Keychain" dataSource:[NSKeyedUnarchiver unarchiveObjectWithData:(__bridge NSData *)keyData]]];

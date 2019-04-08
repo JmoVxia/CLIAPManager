@@ -160,8 +160,7 @@ static CLIAPManager *_manger = nil;
             [request start];
         }else {
             if (self.getProductCompletion) {
-                NSArray<SKProduct *> *array;
-                self.getProductCompletion(array, [self createErrorWithString:@"不支持内购"]);
+                self.getProductCompletion(nil, [self errorWithString:@"不支持内购"]);
             }
         }
     }
@@ -184,8 +183,7 @@ static CLIAPManager *_manger = nil;
     NSArray<SKProduct *> *productArray = response.products;
     if([productArray count] <= 0) {
         if (self.getProductCompletion) {
-            NSArray<SKProduct *> *array;
-            self.getProductCompletion(array, [self createErrorWithString:@"没有商品"]);
+            self.getProductCompletion(nil, [self errorWithString:@"没有商品"]);
         };
     }else {
         if (self.getProductCompletion) {
@@ -304,7 +302,7 @@ static CLIAPManager *_manger = nil;
     [CLIAPKeychain deletePaymentTransactionModelWithTransactionIdentifier:transaction.transactionIdentifier userid:self.userId];
 }
 //MARK:JmoVxia---创建错误
-- (NSError *)createErrorWithString:(NSString *)string {
+- (NSError *)errorWithString:(NSString *)string {
     NSError *error = [NSError errorWithDomain:@"com.CLIAPManager.error" code:0 userInfo:@{NSLocalizedDescriptionKey : string}];
     return error;
 }
@@ -321,7 +319,7 @@ static CLIAPManager *_manger = nil;
     if ([self isEqualProduct:payment]) {
         if (string) {
             if (self.buyProductCompletion) {
-                self.buyProductCompletion([self createErrorWithString:string]);
+                self.buyProductCompletion([self errorWithString:string]);
             }
         }else {
             NSError *error;

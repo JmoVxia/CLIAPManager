@@ -14,7 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 typedef void (^IAPBuyProductCompletion)(NSError *error);
 
-typedef void (^IAPGetProductCompletion)(NSArray<SKProduct *> *array, NSError *error);
+typedef void (^IAPGetProductCompletion)(NSArray<SKProduct *> * _Nullable array, NSError *error);
 
 
 @interface CLIAPManager : NSObject
